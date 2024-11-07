@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="jumbotron text-center">
+    <h1 class="display-4">Bienvenue sur le Forum Bricolage</h1>
+    <p class="lead">Partagez vos projets DIY et apprenez des autres bricoleurs</p>
+    {% if user.is_authenticated %}
+        <a href="{% url 'post_create' %}" class="btn btn-primary btn-lg">Créer une publication</a>
+    {% else %}
+        <a href="{% url 'login' %}" class="btn btn-primary btn-lg">Connectez-vous pour participer</a>
+    {% endif %}
+</div>
+
+<div class="row mt-5">
+    <div class="col-md-8">
+        <h2>Dernières publications</h2>
+        {% for post in latest_posts %}
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">{{ post.title }}</h5>
+                    <h6 class="card-subtitle mb-2 text-muted">Par {{ post.author.username }} le {{ post.created_at|date:"d/m/Y" }}</h6>
+                    <p class="card-text">{{ post.content|truncatewords:50 }}</p>
+                    <a href="{% url 'post_detail' post.id %}" class="btn btn-primary">Lire la suite</a>
+                </div>
+            </div>
+        {% empty %}
+            <p>Aucune publication pour le moment.</p>
+        {% endfor %}
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Statistiques</h5>
+                <ul class="list-unstyled">
+                    <li>Membres: {{ user_count }}</li>
+                    <li>Publications: {{ post_count }}</li>
+                    <li>Commentaires: {{ comment_count }}</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

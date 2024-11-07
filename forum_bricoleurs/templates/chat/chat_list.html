@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <h2 class="mb-4">Mes conversations</h2>
+    <div class="list-group">
+        {% for user in chat_users %}
+            <a href="{% url 'chat_detail' user.username %}" class="list-group-item list-group-item-action">
+                <h5 class="mb-1">{{ user.username }}</h5>
+            </a>
+        {% empty %}
+            <p>Aucune conversation pour le moment.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

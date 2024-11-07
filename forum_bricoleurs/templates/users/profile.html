@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    <!-- Affichage de l'avatar avec une image par défaut si non défini -->
+                    <img src="{{ avatar_url }}" 
+                         alt="{{ profile_user.username }}" 
+                         class="rounded-circle mb-3 profile-avatar" 
+                         style="width: 150px; height: 150px;">
+                    <h3>{{ profile_user.username }}</h3>
+                    <p class="text-muted">Membre depuis {{ profile_user.date_joined|date:"F Y" }}</p>
+                    
+                    {% if profile_user.bio %}
+                        <p>{{ profile_user.bio }}</p>
+                    {% endif %}
+                    
+                    <div class="d-flex justify-content-around mb-3">
+                        <div>
+                            <strong>{{ profile_user.following.count }}</strong>
+                            <div>Abonnements</div>
+                        </div>
+                        <div>
+                            <strong>{{ profile_user.followers.count }}</strong>
+                            <div>Abonnés</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Bouton suivre/désabonner selon le statut -->
+                    {% if user.is_authenticated and not is_own_profile %}
+                        <form action="{% url 'follow_toggle' profile_user.username %}" method="post" class="d-grid">
+                            {% csrf_token %}
+                            <button type="submit" class="btn {% if is_following %}btn-secondary{% else %}btn-primary{% endif %}">
+                                {% if is_following %}
+                                    Se désabonner
+                                {% else %}
+                                    S'abonner
+                                {% endif %}
+                            </button>
+                        </form>
+                    {% endif %}
+                    
+                    <!-- Bouton de modification du profil pour l'utilisateur propriétaire -->
+                    {% if is_own_profile %}
+                        <a href="{% url 'profile_edit' profile_user.username %}" class="btn btn-outline-primary d-block mt-2">
+                            Modifier le profil
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-8">
+            <h4 class="mb-4">Publications de {{ profile_user.username }}</h4>
+            {% for post in posts %}
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ post.title }}</h5>
+                        <p class="card-text">{{ post.content|truncatewords:50 }}</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="btn-group">
+                                <a href="{% url 'post_detail' post.id %}" class="btn btn-sm btn-outline-primary">Lire la suite</a>
+                                {% if is_own_profile %}
+                                    <a href="{% url 'post_edit' post.id %}" class="btn btn-sm btn-outline-secondary">Modifier</a>
+                                {% endif %}
+                            </div>
+                            <small class="text-muted">{{ post.created_at|date:"d/m/Y" }}</small>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <p>Aucune publication pour le moment.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

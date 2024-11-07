@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <!-- Post Content -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h1 class="card-title">{{ post.title }}</h1>
+
+            <!-- Author and Date -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <img src="{% if post.author.avatar %}{{ post.author.avatar.url }}{% else %}/static/images/default-avatar.png{% endif %}" 
+                         alt="{{ post.author.username }}" 
+                         class="rounded-circle"
+                         width="40" height="40">
+                    <a href="{% url 'profile' username=post.author.username %}" class="ms-2">{{ post.author.username }}</a>
+                </div>
+                <div>
+                    <small class="text-muted">Publié le {{ post.created_at|date:"d/m/Y à H:i" }}</small>
+                </div>
+            </div>
+            
+            <!-- Post Content -->
+            <p class="card-text">{{ post.content }}</p>
+
+            <!-- Steps Section -->
+            {% if post.steps.exists %}
+                <h3 class="mt-4">Étapes de réalisation</h3>
+                {% for step in post.steps.all %}
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">Étape {{ step.order }}</h5>
+                            {% if step.image %}
+                                <img src="{{ step.image.url }}" alt="Étape {{ step.order }}" class="img-fluid mb-3">
+                            {% endif %}
+                            <p>{{ step.description }}</p>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- Like/Dislike and Subscribe -->
+            {% if user.is_authenticated %}
+                <div class="d-flex gap-2 mt-3">
+                    <button id="like-btn-{{ post.id }}" class="btn btn-success like-btn" data-post-id="{{ post.id }}">
+                        <i class="fas fa-thumbs-up"></i> <span id="like-count-{{ post.id }}">{{ post.likes.count }}</span>
+                    </button>
+                    <button id="dislike-btn-{{ post.id }}" class="btn btn-danger dislike-btn" data-post-id="{{ post.id }}">
+                        <i class="fas fa-thumbs-down"></i> <span id="dislike-count-{{ post.id }}">{{ post.dislikes.count }}</span>
+                    </button>
+                </div>
+
+                <!-- Delete Post Button -->
+                {% if post.author == user %}
+                    <form method="post" action="{% url 'delete_post' post.id %}" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">Supprimer</button>
+                    </form>
+                {% endif %}
+
+                <!-- Subscribe/Unsubscribe Button -->
+                {% if user in post.author.subscribers.all %}
+                    <a href="{% url 'unsubscribe' post.author.id %}" class="btn btn-danger mt-3">Se désabonner</a>
+                {% else %}
+                    <a href="{% url 'subscribe' post.author.id %}" class="btn btn-primary mt-3">S'abonner</a>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Comments Section -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h3>Commentaires</h3>
+
+            <!-- Add Comment Form -->
+            {% if user.is_authenticated %}
+                <form method="post" action="{% url 'add_comment' post.id %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <textarea name="content" class="form-control" rows="3" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Commenter</button>
+                </form>
+            {% endif %}
+
+            <!-- Comments List -->
+            <div class="comments-section mt-4">
+                {% for comment in post.comments.all %}
+                    <div class="comment mb-3">
+                        <div class="d-flex gap-2 align-items-start">
+                            <img src="{% if comment.author.avatar %}{{ comment.author.avatar.url }}{% else %}/static/images/default-avatar.png{% endif %}" 
+                                 alt="{{ comment.author.username }}"
+                                 class="rounded-circle"
+                                 width="32" height="32">
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between">
+                                    <strong><a href="{% url 'profile' username=comment.author.username %}">{{ comment.author.username }}</a></strong>
+                                    <small class="text-muted">{{ comment.created_at|date:"d/m/Y H:i" }}</small>
+                                </div>
+                                <p class="mb-1">{{ comment.content }}</p>
+
+                                <!-- Reply Button -->
+                                {% if user.is_authenticated %}
+                                    <button class="btn btn-sm btn-link reply-btn" 
+                                            data-comment-id="{{ comment.id }}">
+                                        Répondre
+                                    </button>
+                                {% endif %}
+
+                                <!-- Replies -->
+                                {% for reply in comment.replies.all %}
+                                    <div class="reply ms-4 mt-2">
+                                        <div class="d-flex gap-2 align-items-start">
+                                            <img src="{% if reply.author.avatar %}{{ reply.author.avatar.url }}{% else %}/static/images/default-avatar.png{% endif %}" 
+                                                 alt="{{ reply.author.username }}"
+                                                 class="rounded-circle"
+                                                 width="24" height="24">
+                                            <div>
+                                                <div class="d-flex justify-content-between">
+                                                    <strong><a href="{% url 'profile' username=reply.author.username %}">{{ reply.author.username }}</a></strong>
+                                                    <small class="text-muted">{{ reply.created_at|date:"d/m/Y H:i" }}</small>
+                                                </div>
+                                                <p class="mb-0">{{ reply.content }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <p>Aucun commentaire pour le moment.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="/static/js/post_detail.js"></script>
+{% endblock %}

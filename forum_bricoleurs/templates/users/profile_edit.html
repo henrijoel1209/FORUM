@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <h2 class="card-title text-center mb-4">Modifier mon profil</h2>
+                
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    {% if form.errors %}
+                        <div class="alert alert-danger">
+                            <strong>Erreurs :</strong>
+                            <ul class="mb-0">
+                                {% for field in form %}
+                                    {% for error in field.errors %}
+                                        <li>{{ error }}</li>
+                                    {% endfor %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="mb-3">
+                        <label for="id_email" class="form-label">Email</label>
+                        {{ form.email }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="id_avatar" class="form-label">Avatar</label>
+                        {% if user.avatar %}
+                            <div class="mb-2">
+                                <img src="{{ user.avatar.url }}" alt="Avatar actuel" class="rounded-circle" width="100">
+                            </div>
+                        {% endif %}
+                        {{ form.avatar }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="id_bio" class="form-label">Bio</label>
+                        {{ form.bio }}
+                        <small class="text-muted">Parlez-nous un peu de vous et de vos projets de bricolage.</small>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">Mettre à jour</button>
+                        <a href="{% url 'profile' user.username %}" class="btn btn-secondary">Annuler</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
