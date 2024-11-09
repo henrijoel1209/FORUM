@@ -136,24 +136,19 @@ def add_comment(request, post_id):
             messages.success(request, 'Commentaire ajouté avec succès!')
     return redirect('post_detail', pk=post_id)
 
-@login_required
+from django.shortcuts import get_object_or_404, redirect
+from .models import Comment
+
 def add_reply(request, comment_id):
-    parent_comment = get_object_or_404(Comment, id=comment_id)
-    if request.method == 'POST':
-        data = json.loads(request.body)
-        reply = Comment.objects.create(
-            post=parent_comment.post,
-            author=request.user,
-            content=data['content'],
-            parent=parent_comment
-        )
-        return JsonResponse({
-            'status': 'success',
-            'author': reply.author.username,
-            'content': reply.content,
-            'created_at': reply.created_at.strftime('%d/%m/%Y %H:%M')
-        })
-    return JsonResponse({'status': 'error'}, status=400)
+    if request.method == "POST":
+        comment = get_object_or_404(Comment, id=comment_id)
+        content = request.POST.get("reply_content")
+        if content:
+            reply = Comment(author=request.user, content=content, parent=comment)
+            reply.save()
+        return redirect('post_detail', post_id=comment.post.id)
+    return redirect('post_detail', post_id=comment.post.id)
+
 
 @login_required
 def handle_reaction(request, post_id, reaction_type):
